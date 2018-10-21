@@ -1,8 +1,11 @@
 const express = require('express')
 const path = require('path')
 const expressEdge = require('express-edge')
-
+var mongoose = require('mongoose');
+//DB setup
 const app = new express()
+
+mongoose.connect('mongodb://mongo:27017/node-js-blog');
 
 app.use(express.static('public'))
 app.use(expressEdge)
