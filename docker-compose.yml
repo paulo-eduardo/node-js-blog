@@ -1,0 +1,52 @@
+version: '3.6'
+services:
+  mongodb:
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    volumes:
+      - mongodb-data:/data/db
+    command: mongod --smallfiles --logpath=/dev/null # --quiet
+  mongoadmin:
+    image: mongo-express:latest
+    restart: always
+    environment: 
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_SITE_BASEURL=/mongoadmin/
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    ports:
+      - 5000:8081
+    links:
+      - mongodb
+    depends_on:
+      - mongodb
+
+  # Backend
+  node-js-blog:
+    # env_file:
+    #   - ./.private/api-keys.env "Another way to insert env variables"
+    container_name: blog
+    build: ./
+    volumes:
+      - ./:/usr/src/node-js-blog
+    command: npm start
+    working_dir: /usr/src/node-js-blog
+    ports:
+      - "4000:4000"
+    links:
+      - mongodb
+    depends_on:
+      - mongodb
+    # environment:
+    #   POSTGRES_URI: postgres://admin:password@postgres:5432/smart-brain
+    #   REDIS_URI: redis://redis:6379
+    # Heads up! Docker has updated this feature and now you don't need to define the links property in order for things to work - https://docs.docker.com/compose/networking/
+    # links:
+    #   - postgres
+    #   - redis
+
+volumes:
+  mongodb-data:
