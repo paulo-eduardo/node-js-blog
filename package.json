@@ -19,7 +19,8 @@
   },
   "homepage": "https://github.com/Paulo-Eduardo/node-js-blog#readme",
   "dependencies": {
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "express-edge": "^1.0.0"
   },
   "devDependencies": {
     "nodemon": "^1.18.4"
