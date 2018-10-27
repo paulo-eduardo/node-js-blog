@@ -57,14 +57,16 @@ app.use('*', (req, res, next) => {
 app.use('/post/store', storePostMiddleware)
 
 app.get('/', homePageController)
-app.get('/posts/new', authMiddleware, createPostController)
 app.get('/post/:id', getPostController)
-app.get('/auth/logout', redirectIfAuthenticatedMiddleware, logoutUserController)
+app.get('/posts/new', authMiddleware, createPostController)
+app.get('/auth/logout', authMiddleware, logoutUserController)
 app.post('/posts/store', authMiddleware, storePostMiddleware, storePostController)
 app.get('/auth/login', redirectIfAuthenticatedMiddleware, loginController)
 app.post('/users/login', redirectIfAuthenticatedMiddleware, loginUserController)
 app.get('/auth/register', redirectIfAuthenticatedMiddleware, createUserController)
 app.post('/users/register', redirectIfAuthenticatedMiddleware, storeUserController)
+app.use((req, res) => res.render('not-found'));
+
 
 app.listen(4000, () => {
     console.log('App listen on port 4000')
