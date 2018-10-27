@@ -1,11 +1,13 @@
-const express = require('express')
-const path = require('path')
 const expressEdge = require('express-edge')
+const express = require('express')
+const edge = require('edge.js')
+const path = require('path')
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
 const expressSession = require('express-session');
 const connectMongo = require('connect-mongo')
+const connectFlash = require('connect-flash')
 
 const createPostController = require('./controllers/createPost')
 const homePageController = require('./controllers/homePage')
@@ -15,19 +17,22 @@ const createUserController = require('./controllers/createUser')
 const storeUserController = require('./controllers/storeUser')
 const loginController = require('./controllers/login')
 const loginUserController = require('./controllers/loginUser')
+const logoutUserController = require('./controllers/logoutUser')
 
 
 const storePostMiddleware = require('./middleware/storePost')
 const authMiddleware = require('./middleware/auth')
+const redirectIfAuthenticatedMiddleware = require('./middleware/redirectIfAuthenticated')
 
 const Post = require('./database/models/Post')
 
 //DB setup
 const app = new express()
 
-mongoose.connect('mongodb://mongodb/node-js-blog', {
+mongoose.connect('mongodb://localhost/node-js-blog', {
     useNewUrlParser: true
 })
+app.use(connectFlash());
 const mongoStore = connectMongo(expressSession)
 
 app.use(expressSession({
@@ -37,9 +42,6 @@ app.use(expressSession({
     })
 }))
 
-
-
-
 app.use(fileUpload())
 app.use(express.static('public'))
 app.use(expressEdge)
@@ -47,17 +49,22 @@ app.set('views', `${__dirname}/views`)
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
+app.use('*', (req, res, next) => {
+    edge.global('auth', req.session.userId)
+    next()
+})
 
 app.use('/post/store', storePostMiddleware)
 
 app.get('/', homePageController)
-app.get('/auth/register', createUserController)
 app.get('/posts/new', authMiddleware, createPostController)
 app.get('/post/:id', getPostController)
-app.get('/auth/login', loginController)
+app.get('/auth/logout', redirectIfAuthenticatedMiddleware, logoutUserController)
 app.post('/posts/store', authMiddleware, storePostMiddleware, storePostController)
-app.post('/users/register', storeUserController)
-app.post('/users/login', loginUserController)
+app.get('/auth/login', redirectIfAuthenticatedMiddleware, loginController)
+app.post('/users/login', redirectIfAuthenticatedMiddleware, loginUserController)
+app.get('/auth/register', redirectIfAuthenticatedMiddleware, createUserController)
+app.post('/users/register', redirectIfAuthenticatedMiddleware, storeUserController)
 
 app.listen(4000, () => {
     console.log('App listen on port 4000')
